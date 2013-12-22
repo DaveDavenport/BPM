@@ -17,6 +17,15 @@
 #define MODEMDEVICE     "/dev/ttyUSB0"
 #define _POSIX_SOURCE   1
 
+/**
+ * TODO:
+ *  * Specify serial port as parameter.
+ *  * Set database dir as parameter.
+ *  * Support config file?
+ *  * Range support.
+ *  * Average support.
+ */
+
 namespace BPM
 {
 
