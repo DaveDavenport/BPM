@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <list>
+#include <tuple>
 #include <sys/signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -23,7 +24,7 @@
  *  * Set database dir as parameter.
  *  * Support config file?
  *  * Range support.
- *  * Average support.
+ *  --* Average support.--
  */
 
 namespace BPM
@@ -106,6 +107,7 @@ public:
             sqlite3 *handle = nullptr;
             sqlite3_stmt *insert_stmt = nullptr;
             sqlite3_stmt *list_all_stmt = nullptr;
+            sqlite3_stmt *get_average_stmt = nullptr;
 
             /**
              * Add the database definition.
@@ -146,6 +148,14 @@ public:
                 if( retv != SQLITE_OK ) {
                     fprintf(stderr, "Failed to prepare statement: %s:%i\n", list_all_str,retv);
                 }
+
+                const char * const get_average_str = "SELECT avg(systolic), avg(diastolic) FROM bpp;";
+                retv = sqlite3_prepare_v2(this->handle,
+                        get_average_str, -1,
+                        &(this->get_average_stmt), nullptr);
+                if( retv != SQLITE_OK ) {
+                    fprintf(stderr, "Failed to prepare statement: %s:%i\n", get_average_str,retv);
+                }
             }
 
         public:
@@ -158,6 +168,31 @@ public:
                     sqlite3_step(this->insert_stmt);
 
                     sqlite3_reset(this->insert_stmt);
+            }
+
+            std::tuple<uint8_t, uint8_t> average()
+            {
+                std::tuple<uint8_t, uint8_t> retv(0,0);
+
+                int rc = sqlite3_step(this->get_average_stmt);
+                switch(rc)  {
+                    case SQLITE_DONE:
+                        break;
+                    case SQLITE_ROW:
+                        {
+                            std::get<0>(retv) = sqlite3_column_int(this->get_average_stmt,0);
+                            std::get<1>(retv) = sqlite3_column_int(this->get_average_stmt,1);
+                        }
+                        break;
+                    default:
+                        fprintf(stderr, "Error iterating table: %s\n",
+                                sqlite3_errmsg(this->handle)); 
+                        break;    
+                }
+
+                // Reset the query.
+                sqlite3_reset(this->list_all_stmt);
+                return retv;
             }
 
             std::list<measurement>  list()
@@ -224,9 +259,15 @@ public:
                 printf("Closing database\n");
                 if( this->insert_stmt != nullptr ) {
                     sqlite3_finalize(this->insert_stmt);
+                    this->insert_stmt = nullptr;
                 }
                 if( this->list_all_stmt != nullptr ) {
                     sqlite3_finalize(this->list_all_stmt);
+                    this->list_all_stmt = nullptr;
+                }
+                if( this->get_average_stmt != nullptr ) {
+                    sqlite3_finalize(this->get_average_stmt);
+                    this->get_average_stmt = nullptr;
                 }
                 if(this->handle != nullptr) {
                     int res = sqlite3_close(this->handle);
@@ -396,6 +437,12 @@ public:
                 (*it).print_csv();
             }
         }
+        void print_avg()
+        {
+            auto val = storage.average();
+            printf("Average:\n\tSystolic: %d\n\tDiastolic: %d\n",
+                std::get<0>(val), std::get<1>(val));
+        }
 
         public:
             Main() {}
@@ -409,6 +456,8 @@ public:
                         this->list();
                     } else if ( strncmp(argv[1], "csv", 3) == 0) {
                         this->list_csv();
+                    } else if  ( strncmp (argv[1], "avg", 2) == 0) {
+                        this->print_avg();
                     } else {
                         this->help();
                     }
