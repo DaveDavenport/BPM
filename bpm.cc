@@ -36,11 +36,13 @@
 
 /**
  * TODO:
- *  * Specify serial port as parameter.
- *  * Set database dir as parameter.
+ *  --* Specify serial port as parameter.--(implemented using env)
+ *  --* Set database dir as parameter.-- (implemented using env)
  *  * Support config file?
  *  * Range support.
  *  --* Average support.--
+ *  --* build time check of dependencies *--
+ *  --* prefer clang *--
  */
 
 namespace BPM
@@ -174,6 +176,21 @@ public:
                 }
             }
 
+            void open(const char *path)
+            {
+                printf("Opening db: %s\n", path);
+                int res = sqlite3_open(path, &this->handle);
+                if ( res != SQLITE_OK ) {
+                    fprintf(stderr, "Failed to open database: %s\n", path);
+                    delete path;
+                    exit(1);
+                    return;
+                }
+
+                check_database();
+                prepare_statements();
+            }
+
         public:
             void add(measurement &msg)
             {
@@ -248,26 +265,17 @@ public:
             Storage()
             {
                 char *path = nullptr;
-                // Create path.
-                const char * filename = ".bpm.sqlite3";
-                const char * homedir = getenv("HOME");
-                ssize_t size = strlen(filename)+strlen(homedir)+2;
-                path = (char *) new char[size];
-                snprintf(path, size, "%s/%s", homedir, filename); 
-                printf("Opening db: %s\n", path);
-
-
-                int res = sqlite3_open(path, &this->handle);
-                if ( res != SQLITE_OK ) {
-                    fprintf(stderr, "Failed to open database: %s\n", path);
-                    delete path;
-                    exit(1);
-                    return;
+                path = getenv("BPM_PATH");
+                if ( path == nullptr )
+                {
+                    // Create path.
+                    const char * filename = ".bpm.sqlite3";
+                    const char * homedir = getenv("HOME");
+                    ssize_t size = strlen(filename)+strlen(homedir)+2;
+                    path = (char *) new char[size];
+                    snprintf(path, size, "%s/%s", homedir, filename); 
                 }
-
-                check_database();
-                prepare_statements();
-
+                open(path);
             }
 
             ~Storage()
@@ -357,11 +365,15 @@ public:
             bool open_device()
             {
                 struct termios newtio;
+                const char *path  = getenv("BPM_DEVICE");
+                // Fall back to default if not found.
+                if( path == nullptr ) {
+                    path = MODEMDEVICE;
+                }
 
-
-                fd = open(MODEMDEVICE, O_RDWR | O_NOCTTY ); 
+                fd = open(path, O_RDWR | O_NOCTTY ); 
                 if (fd <0) {
-                    perror(MODEMDEVICE);
+                    perror(path);
                     return false;
                 }
 
