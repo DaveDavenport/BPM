@@ -41,3 +41,6 @@ $(PROGRAM): $(OBJECTS)
 clean:
 	rm -f $(PROGRAM) $(OBJECTS)
 
+.PHONY: plot
+plot: $(PROGRAM)
+	gnuplot plot.gnuplot

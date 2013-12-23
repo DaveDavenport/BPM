@@ -43,6 +43,7 @@
  *  --* Average support.--
  *  --* build time check of dependencies *--
  *  --* prefer clang *--
+ *  * Help
  */
 
 namespace BPM
@@ -112,6 +113,14 @@ public:
                 this->get_diastolic(),
                 this->get_bpm());
         }
+        void print_txt()
+        {
+            printf("%llu %d %d\n",
+                (long long unsigned)this->get_time(),
+                this->get_systolic(),
+                this->get_diastolic()
+                );
+        }
     }measurement;
 
     /**
@@ -178,7 +187,6 @@ public:
 
             void open(const char *path)
             {
-                printf("Opening db: %s\n", path);
                 int res = sqlite3_open(path, &this->handle);
                 if ( res != SQLITE_OK ) {
                     fprintf(stderr, "Failed to open database: %s\n", path);
@@ -280,7 +288,6 @@ public:
 
             ~Storage()
             {
-                printf("Closing database\n");
                 if( this->insert_stmt != nullptr ) {
                     sqlite3_finalize(this->insert_stmt);
                     this->insert_stmt = nullptr;
@@ -465,6 +472,14 @@ public:
                 (*it).print_csv();
             }
         }
+        void list_txt()
+        {
+            auto list = storage.list();
+            list.reverse();
+            for ( auto it = list.begin(); it != list.end(); it++) {
+                (*it).print_txt();
+            }
+        }
         void print_avg()
         {
             auto val = storage.average();
@@ -484,7 +499,9 @@ public:
                         this->list();
                     } else if ( strncmp(argv[1], "csv", 3) == 0) {
                         this->list_csv();
-                    } else if  ( strncmp (argv[1], "avg", 2) == 0) {
+                    } else if  ( strncmp (argv[1], "txt", 3) == 0) {
+                        this->list_txt();
+                    } else if  ( strncmp (argv[1], "avg", 3) == 0) {
                         this->print_avg();
                     } else {
                         this->help();
