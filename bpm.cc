@@ -59,13 +59,13 @@ namespace BPM
 private:
         uint8_t mag;
         uint8_t systolic;
-        uint8_t diastolic; 
+        uint8_t diastolic;
         uint8_t bpm;
         uint8_t month;
         uint8_t day;
         uint8_t hour;
         uint8_t min;
-        uint8_t year; 
+        uint8_t year;
 public:
         void set_systolic(uint8_t val ) { this->systolic = val-25;}
         void set_diastolic(uint8_t val ) { this->diastolic= val-25;}
@@ -73,7 +73,7 @@ public:
         uint8_t get_systolic() { return this->systolic+25; }
         uint8_t get_diastolic() { return this->diastolic+25; }
         uint8_t get_bpm() { return this->bpm; }
-        
+
         time_t get_time()
         {
             struct tm  timestr;
@@ -83,6 +83,9 @@ public:
             timestr.tm_mon = this->month-1;
             timestr.tm_mday = this->day;
             timestr.tm_year = this->year+100;
+            timestr.tm_wday = -1;
+            timestr.tm_yday = -1;
+            timestr.tm_isdst = -1;
             return mktime(&timestr);;
         }
         void set_time(time_t time)
@@ -168,7 +171,7 @@ public:
                     fprintf(stderr, "Failed to prepare statement: %s:%i\n", insert_db_str,retv);
                 }
 
-                const char * const list_all_str = "SELECT * from bpp ORDER BY time;";
+                const char * const list_all_str = "SELECT * from bpp ORDER BY time ASC";
                 retv = sqlite3_prepare_v2(this->handle,
                         list_all_str, -1,
                         &(this->list_all_stmt),nullptr);
@@ -227,8 +230,8 @@ public:
                         break;
                     default:
                         fprintf(stderr, "Error iterating table: %s\n",
-                                sqlite3_errmsg(this->handle)); 
-                        break;    
+                                sqlite3_errmsg(this->handle));
+                        break;
                 }
 
                 // Reset the query.
@@ -240,7 +243,7 @@ public:
             {
                 std::list<measurement> list;
                 int rc;
-                do{                
+                do{
                     rc = sqlite3_step(this->list_all_stmt);
                     switch(rc)  {
                         case SQLITE_DONE:
@@ -251,19 +254,18 @@ public:
                                 time_t time = sqlite3_column_int64(this->list_all_stmt,0);
                                 msg.set_time(time);
                                 msg.set_systolic(sqlite3_column_int(this->list_all_stmt,1));
-                                msg.set_diastolic(sqlite3_column_int(this->list_all_stmt,2)); 
+                                msg.set_diastolic(sqlite3_column_int(this->list_all_stmt,2));
                                 msg.set_bpm(sqlite3_column_int(this->list_all_stmt,3));
                                 list.push_back(msg);
                             }
                             break;
                         default:
                             fprintf(stderr, "Error iterating table: %s\n",
-                                    sqlite3_errmsg(this->handle)); 
-                            break;    
+                                    sqlite3_errmsg(this->handle));
+                            break;
                     }
 
                 }while(rc == SQLITE_ROW);
-                list.reverse();
                 // Reset the query.
                 sqlite3_reset(this->list_all_stmt);
                 return list;
@@ -281,7 +283,7 @@ public:
                     const char * homedir = getenv("HOME");
                     ssize_t size = strlen(filename)+strlen(homedir)+2;
                     path = (char *) new char[size];
-                    snprintf(path, size, "%s/%s", homedir, filename); 
+                    snprintf(path, size, "%s/%s", homedir, filename);
                 }
                 open(path);
             }
@@ -310,7 +312,7 @@ public:
 
     };
 
-    class BM58 
+    class BM58
     {
         private:
             // File handle
@@ -328,7 +330,7 @@ public:
             bool ping()
             {
                 uint8_t msg = 0xAA;
-                write(fd, &msg, 1); 
+                write(fd, &msg, 1);
 
                 read(fd, &msg, 1);
 
@@ -341,7 +343,7 @@ public:
 
                 write(fd, &msg, 1);
 
-                Read(fd,resp,32);             
+                Read(fd,resp,32);
 
                 resp[32] = '\0';
                 printf("Found device: %s\n", resp);
@@ -351,7 +353,7 @@ public:
             int get_num_measurements()
             {
                 uint8_t msg = 0xA2;
-                write(fd, &msg, 1); 
+                write(fd, &msg, 1);
                 read(fd, &msg, 1);
                 return msg;
             }
@@ -365,8 +367,8 @@ public:
                 msg = id+1;
                 write(fd, &msg, 1);
 
-                Read(fd, (uint8_t *)&retv, sizeof(measurement)); 
-                
+                Read(fd, (uint8_t *)&retv, sizeof(measurement));
+
                 return retv;
             }
             bool open_device()
@@ -378,7 +380,7 @@ public:
                     path = MODEMDEVICE;
                 }
 
-                fd = open(path, O_RDWR | O_NOCTTY ); 
+                fd = open(path, O_RDWR | O_NOCTTY );
                 if (fd <0) {
                     perror(path);
                     return false;
@@ -388,14 +390,14 @@ public:
                 tcgetattr(fd,&oldtio);
 
                 /* clear struct for new port settings */
-                memset(&newtio, 0,sizeof(newtio)); 
+                memset(&newtio, 0,sizeof(newtio));
                 /* configure port */
                 newtio.c_cflag = BAUDRATE | CS8;
-                newtio.c_iflag = 0; 
+                newtio.c_iflag = 0;
                 newtio.c_oflag = 0;
                 newtio.c_lflag = 0;       //ICANON;
                 newtio.c_cc[VMIN]=1;
-                newtio.c_cc[VTIME]=0;         
+                newtio.c_cc[VTIME]=0;
 
                 /* set settings. */
                 tcflush(fd, TCIFLUSH);
@@ -433,6 +435,7 @@ public:
         private:
                 Storage storage;
                 BM58    bm58;
+                bool filter = false;
         void import()
         {
             if(bm58.open_device()) {
@@ -441,13 +444,13 @@ public:
                 for ( int i = 0; i < num_records; i++) {
                     auto msg = bm58.get_measurement(i);
                     fputs("\033[A\033[2K",stdout);
-                    printf("%03d/%03d\n", i+1, num_records); 
+                    printf("%03d/%03d\n", i+1, num_records);
                     storage.add(msg);
                 }
             }
         }
         /**
-         * 
+         *
          */
         void help()
         {
@@ -461,6 +464,9 @@ public:
         {
             printf("Listing nodes\n");
             auto list = storage.list();
+            if(filter) {
+                list = this->filter_list(list);
+            }
             for ( auto it = list.begin(); it != list.end(); it++) {
                 (*it).print();
             }
@@ -468,6 +474,9 @@ public:
         void list_csv()
         {
             auto list = storage.list();
+            if(filter) {
+                list = this->filter_list(list);
+            }
             for ( auto it = list.begin(); it != list.end(); it++) {
                 (*it).print_csv();
             }
@@ -475,7 +484,9 @@ public:
         void list_txt()
         {
             auto list = storage.list();
-            list.reverse();
+            if(filter) {
+                list = this->filter_list(list);
+            }
             for ( auto it = list.begin(); it != list.end(); it++) {
                 (*it).print_txt();
             }
@@ -486,28 +497,65 @@ public:
             printf("Average:\n\tSystolic: %d\n\tDiastolic: %d\n",
                 std::get<0>(val), std::get<1>(val));
         }
+        std::list<measurement> filter_list ( std::list<measurement> &ls)
+        {
+            std::list<measurement> retv;
+            if(ls.empty()) return retv;
+            measurement last = *(ls.begin());
+            int elements = 1;
+            for(auto it : ls ) {
+                {
+                    auto diff = it.get_time()-last.get_time();
+                    if(labs(diff) < (60*10)) {
+                        if (it.get_diastolic() < last.get_diastolic())
+                        {
+                            double dia = last.get_diastolic()*(elements/(double)(elements+1));
+                            dia+=it.get_diastolic()*(1/(double)(elements+1));
+                            last.set_diastolic(dia);
+                            double sys = last.get_systolic()*(elements/(double)(elements+1));
+                            sys+=it.get_systolic()*(1/(double)(elements+1));
+                            last.set_systolic(sys);
+                            double bpm = last.get_bpm()*(elements/(double)(elements+1));
+                            sys+=it.get_bpm()*(1/(double)(elements+1));
+                            last.set_bpm(bpm);
+                        }
+                        elements++;
+                    }
+                    else {
+                        retv.push_back(last);
+                        last = it;
+                        elements = 1;
+                    }
+                }
+            }
+            retv.push_back(last);
+            return retv;
+        }
+
 
         public:
             Main() {}
 
             int run (int argc, char *argv[])
             {
-                if(argc > 1) {
-                    if( strncmp(argv[1], "import", 6) == 0) {
+                for(int i =1 ; i < argc; i++) {
+                    if( strncmp(argv[i], "import", 6) == 0) {
                         this->import();
-                    } else if ( strncmp(argv[1], "list", 4) == 0) {
+                    } else if ( strncmp(argv[i], "list", 4) == 0) {
                         this->list();
-                    } else if ( strncmp(argv[1], "csv", 3) == 0) {
+                    } else if ( strncmp(argv[i], "csv", 3) == 0) {
                         this->list_csv();
-                    } else if  ( strncmp (argv[1], "txt", 3) == 0) {
+                    } else if  ( strncmp (argv[i], "txt", 3) == 0) {
                         this->list_txt();
-                    } else if  ( strncmp (argv[1], "avg", 3) == 0) {
+                    } else if  ( strncmp (argv[i], "avg", 3) == 0) {
                         this->print_avg();
+                    } else if ( strncmp ( argv[i], "filter", 6) == 0) {
+                        this->filter = true;
                     } else {
                         this->help();
                     }
                 }
-                else
+                if(argc <2)
                 {
                     this->help();
                 }
