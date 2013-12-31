@@ -284,18 +284,32 @@ public:
 
             Storage()
             {
-                char *path = nullptr;
-                path = getenv("BPM_PATH");
-                if ( path == nullptr )
+                // Check if there is an override.
+                if ( getenv("BPM_PATH") == nullptr )
                 {
                     // Create path.
                     const char * filename = ".bpm.sqlite3";
                     const char * homedir = getenv("HOME");
+
+                    if(homedir == nullptr) {
+                        fprintf(stderr, "No 'HOME' directory set.\n");
+                        exit(-1);
+                    }
+
+                    // Create memory with enough size to hold path.
                     ssize_t size = strlen(filename)+strlen(homedir)+2;
-                    path = (char *) new char[size];
+                    char *path = (char *) new char[size];
+                    // Create path
                     snprintf(path, size, "%s/%s", homedir, filename);
+
+                    open(path);
+
+                    delete[] path;
                 }
-                open(path);
+                else
+                {
+                    open(getenv("BPM_PATH"));
+                }
             }
 
             ~Storage()
@@ -592,11 +606,11 @@ public:
                         this->list();
                     } else if ( strncmp(argv[i], "csv", 3) == 0) {
                         this->list_csv();
-                    } else if  ( strncmp (argv[i], "txt", 3) == 0) {
+                    } else if ( strncmp(argv[i], "txt", 3) == 0) {
                         this->list_txt();
-                    } else if  ( strncmp (argv[i], "avg", 3) == 0) {
+                    } else if ( strncmp(argv[i], "avg", 3) == 0) {
                         this->print_avg();
-                    } else if ( strncmp ( argv[i], "filter", 6) == 0) {
+                    } else if ( strncmp(argv[i], "filter", 6) == 0) {
                         this->filter = true;
                     } else {
                         this->help();
