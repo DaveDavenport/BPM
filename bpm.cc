@@ -503,30 +503,56 @@ public:
                 (*it).print_txt();
             }
         }
+
+        /**
+         * Print the average systolic, diastolic.
+         */
         void print_avg()
         {
             auto val = storage.average();
             printf("Average:\n\tSystolic: %d\n\tDiastolic: %d\n",
                 std::get<0>(val), std::get<1>(val));
         }
-        std::list<measurement> filter_list ( std::list<measurement> &ls)
+
+        /**
+         * All points within 'filter_range' time get merged.
+         */
+        const int filter_range = 60*10;
+
+        /**
+         * Filter the list.
+         *
+         * @param ls Reference to the list to filter.
+         *
+         * Samples within 10 minutes get merged and averaged.
+         *
+         * @returns a new std::list<measurement> with the filtered points.
+         */
+        std::list<measurement> filter_list ( const std::list<measurement> &ls)
         {
             std::list<measurement> retv;
+
+            // If empty, return empty list.
             if(ls.empty()) return retv;
+
+            // Filter
             measurement last = *(ls.begin());
             int elements = 1;
             for(auto it : ls ) {
                 {
                     auto diff = it.get_time()-last.get_time();
-                    if(labs(diff) < (60*10)) {
+                    if(labs(diff) < (filter_range)) {
                         if (it.get_diastolic() < last.get_diastolic())
                         {
+                            // Diastolic.
                             double dia = last.get_diastolic()*(elements/(double)(elements+1));
                             dia+=it.get_diastolic()*(1/(double)(elements+1));
                             last.set_diastolic(dia);
+                            // Systolic.
                             double sys = last.get_systolic()*(elements/(double)(elements+1));
                             sys+=it.get_systolic()*(1/(double)(elements+1));
                             last.set_systolic(sys);
+                            // BPM
                             double bpm = last.get_bpm()*(elements/(double)(elements+1));
                             sys+=it.get_bpm()*(1/(double)(elements+1));
                             last.set_bpm(bpm);
