@@ -43,7 +43,7 @@
  *  --* Average support.--
  *  --* build time check of dependencies *--
  *  --* prefer clang *--
- *  * Help
+ *  --* Help --
  */
 
 namespace BPM
@@ -74,6 +74,15 @@ public:
         uint8_t get_diastolic() { return this->diastolic+25; }
         uint8_t get_bpm() { return this->bpm; }
 
+        /**
+         * Accessors
+         */
+
+        /**
+         * Get the time of the measurement.
+         *
+         * @returns the time (in unix time) of the measurement.
+         */
         time_t get_time()
         {
             struct tm  timestr;
@@ -98,27 +107,28 @@ public:
             this->month = timestr->tm_mon+1;
             this->year = timestr->tm_year-100;
         }
+
         // Dump content of struct.
-        void print()
+        void print(FILE *out = stdout)
         {
             char buffer[1024];
             struct tm *timestr;
             time_t t = this->get_time();
             timestr = localtime(&t);
             strftime(buffer, 1024, "%c", timestr);
-            printf("%s %d %d\n", buffer, this->get_systolic(), this->get_diastolic());
+            fprintf(out, "%s %d %d\n", buffer, this->get_systolic(), this->get_diastolic());
         }
-        void print_csv()
+        void print_csv(FILE *out = stdout)
         {
-            printf("\"%llu\",\"%d\",\"%d\",\"%d\"\n",
+            fprintf(stdout,"\"%llu\",\"%d\",\"%d\",\"%d\"\n",
                 (long long unsigned)this->get_time(),
                 this->get_systolic(),
                 this->get_diastolic(),
                 this->get_bpm());
         }
-        void print_txt()
+        void print_txt(FILE *out = stdout)
         {
-            printf("%llu %d %d\n",
+            fprintf(out,"%llu %d %d\n",
                 (long long unsigned)this->get_time(),
                 this->get_systolic(),
                 this->get_diastolic()
@@ -309,7 +319,6 @@ public:
                     }
                 }
             }
-
     };
 
     class BM58
