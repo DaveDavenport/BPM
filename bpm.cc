@@ -454,7 +454,19 @@ public:
          */
         void help()
         {
-
+            printf("BPM: Blood Pressure Monitor Client.\n");
+            printf("Usage: bpm <option><command>\n");
+            printf("Option:\n");
+            printf("\tfilter:\tAverage multiple samples within 10 minutes in the next commands.\n");
+            printf("Command:\n");
+            printf("\tlist:\tList the measurements\n");
+            printf("\tcsv:\tGenerate a CSV file for the measurements\n");
+            printf("\ttxt:\tGenerate a TXT file for the measurements. Use for gnuplot.\n");
+            printf("\timport:\tImport entries from  BPM.\n");
+            printf("\n");
+            printf("Environments:\n");
+            printf("\tBPM_DEVICE:\tDevice node to read samples from.\n");
+            printf("\tBPM_PATH:\tDatabase file.\n");
         }
 
         /**
@@ -553,11 +565,13 @@ public:
                         this->filter = true;
                     } else {
                         this->help();
+                        return EXIT_FAILURE;
                     }
                 }
                 if(argc <2)
                 {
                     this->help();
+                    return EXIT_FAILURE;
                 }
 
                 return EXIT_SUCCESS;
