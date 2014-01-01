@@ -20,6 +20,9 @@ endif
 
 
 QUIET=@
+
+PREFIX?=$(HOME)/.local/
+
 SOURCES=$(wildcard *.cc)
 OBJECTS=$(SOURCES:%.cc=build/objects/%.o)
 PROGRAM=bpm
@@ -53,10 +56,14 @@ clean:
 	rm -rf build 
 
 .PHONY: plot
-plot: build/$(PROGRAM)
+plot: $(BUILD_DIR)/$(PROGRAM)
 	gnuplot plot.gnuplot
 
 
 .PHONY: doc
 doc:
 	doxygen	doc/doxygen.doxy
+
+
+install: $(BUILD_DIR)/$(PROGRAM)
+	install $^ $(PREFIX)/bin/$(PROGRAM)
