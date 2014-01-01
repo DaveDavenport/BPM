@@ -44,3 +44,8 @@ clean:
 .PHONY: plot
 plot: $(PROGRAM)
 	gnuplot plot.gnuplot
+
+
+.PHONY: doc
+doc:
+	doxygen	doc/doxygen.doxy

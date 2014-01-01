@@ -1,4 +1,4 @@
-/**
+/*
  *    This file is part of BPM.
  *    Written by Qball Cow <qball@gmpclient.org> 2013
  *
@@ -27,23 +27,28 @@
 #include <sys/signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
 #include <sqlite3.h>
 
+/**
+ * Serial port speed.
+ * This is 4800bits/sec.
+ */
 #define BAUDRATE        B4800
-#define MODEMDEVICE     "/dev/ttyUSB0"
-#define _POSIX_SOURCE   1
 
 /**
- * TODO:
- *  --* Specify serial port as parameter.--(implemented using env)
- *  --* Set database dir as parameter.-- (implemented using env)
- *  * Support config file?
- *  * Range support.
- *  --* Average support.--
- *  --* build time check of dependencies *--
- *  --* prefer clang *--
- *  --* Help --
+ * Default serial port device
+ */
+#define MODEMDEVICE     "/dev/ttyUSB0"
+
+
+/**
+ * @todo * Specify serial port as parameter.--(implemented using env)
+ *
+ * @todo * Set database dir as parameter.-- (implemented using env)
+ *
+ * @todo * Support config file?
+ *
+ * @todo * Range support.
  */
 
 namespace BPM
@@ -67,11 +72,36 @@ private:
         uint8_t min;
         uint8_t year;
 public:
+        /**
+         * @param val the new systolic value.
+         * Set the systolic value for this measurement
+         */
         void set_systolic(uint8_t val ) { this->systolic = val-25;}
-        void set_diastolic(uint8_t val ) { this->diastolic= val-25;}
-        void set_bpm(uint8_t val ) { this->bpm = val;}
+        /**
+         * Get the systolic value
+         *
+         * @returns the systolic value.
+         */
         uint8_t get_systolic() { return this->systolic+25; }
+        /**
+         * @param val the new diastolic value.
+         * Set the diastolic value for this measurement
+         */
+        void set_diastolic(uint8_t val ) { this->diastolic= val-25;}
+        /**
+         * Get the diastolic value
+         * @returns the diastolic value.
+         */
         uint8_t get_diastolic() { return this->diastolic+25; }
+        /**
+         * @param val the new bpm value.
+         * Set the bpm (beats per minute) value for this measurement
+         */
+        void set_bpm(uint8_t val ) { this->bpm = val;}
+        /**
+         * Get the bpm (beats per minute)
+         * @returns the BPM.
+         */
         uint8_t get_bpm() { return this->bpm; }
 
         /**
@@ -444,9 +474,7 @@ public:
                 }
             }
         public:
-            BM58()
-            {
-            }
+            BM58() {}
             ~BM58()
             {
                 close_device();
@@ -625,7 +653,6 @@ public:
 
                 return EXIT_SUCCESS;
             }
-
     };
 }
 
