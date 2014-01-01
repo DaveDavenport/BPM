@@ -25,6 +25,6 @@ avgdia(x)=y0+mean_diastolic*(x)
 fit avgdia(x) "< ./bpm filter txt" using 1:3 via y0,mean_diastolic
 
 plot "< ./bpm filter txt" using 1:2 with lines title "systolic" ls 1,\
-"< ./bpm filter txt" using 1:3 with lines title "diastolic" ls 2,\
-avgsys(x) ls 3 title 'avg. systolic',\
-avgdia(x) ls 3 title 'avg. diastolic'
+	 "< ./bpm filter txt" using 1:3 with lines title "diastolic" ls 2,\
+	 avgsys(x) ls 3 title 'avg. systolic',\
+	 avgdia(x) ls 3 title 'avg. diastolic'

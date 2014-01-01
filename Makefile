@@ -21,28 +21,39 @@ endif
 
 QUIET=@
 SOURCES=$(wildcard *.cc)
-OBJECTS=$(SOURCES:%.cc=%.o)
+OBJECTS=$(SOURCES:%.cc=build/objects/%.o)
 PROGRAM=bpm
 CXXFLAGS=-g3 -Wall -std=c++0x $(shell $(PKG_CONFIG) --cflags sqlite3)
 LDXXFLAGS=
 LIBS=$(shell $(PKG_CONFIG) --libs sqlite3)
 
-all: $(PROGRAM) 
+
+#
+BUILD_DIR=build
+OBJECTS_DIR=$(BUILD_DIR)/objects
+
+all: $(BUILD_DIR)/$(PROGRAM) 
 
 
-%.o: %.cc | Makefile
+$(BUILD_DIR):
+	$(QUIET)mkdir -p $@ 
+
+$(OBJECTS_DIR): $(BUILD_DIR) 
+	$(QUIET)mkdir -p $@
+
+build/objects/%.o: %.cc | Makefile $(OBJECTS_DIR) 
 	$(info Compiling: $^ -> $@)
 	$(QUIET)$(CXX) $(CXXFLAGS) -c -o $@ $^
 
-$(PROGRAM): $(OBJECTS)
+build/$(PROGRAM): $(OBJECTS)
 	$(info  Linking: $@)
 	$(QUIET)$(CXX) $(LDXXFLAGS) -o $@ $^ $(LIBS)
 
 clean:
-	rm -f $(PROGRAM) $(OBJECTS)
+	rm -rf build 
 
 .PHONY: plot
-plot: $(PROGRAM)
+plot: build/$(PROGRAM)
 	gnuplot plot.gnuplot
 
 
