@@ -49,6 +49,9 @@ Display average systolic and diastolic pressure.
  * *filter*
 Measurements taken within 10 minutes of each other are averaged.
 
+ * *plot*
+Call gnuplot to plot the blood pressure.
+
 
 
 

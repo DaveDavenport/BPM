@@ -19,12 +19,12 @@ set style line 3 lt 2 lc rgb "#760909" lw 1
 
 FIT_LIMIT=1e-18
 avgsys(x)=c+mean_systolic*(x)
-fit avgsys(x) "< ./build/bpm filter txt" using 1:2 via c,mean_systolic
+fit avgsys(x) "< bpm filter txt" using 1:2 via c,mean_systolic
 
 avgdia(x)=y0+mean_diastolic*(x)
-fit avgdia(x) "< ./build/bpm filter txt" using 1:3 via y0,mean_diastolic
+fit avgdia(x) "< bpm filter txt" using 1:3 via y0,mean_diastolic
 
-plot "< ./build/bpm filter txt" using 1:2 with lines title "systolic" ls 1,\
-	 "< ./build/bpm filter txt" using 1:3 with lines title "diastolic" ls 2,\
+plot "< bpm filter txt" using 1:2 with lines title "systolic" ls 1,\
+	 "< bpm filter txt" using 1:3 with lines title "diastolic" ls 2,\
 	 avgsys(x) ls 3 title 'avg. systolic',\
 	 avgdia(x) ls 3 title 'avg. diastolic'
