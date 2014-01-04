@@ -15,13 +15,14 @@ bpm ['command']
 DESCRIPTION
 -----------
 
-This manual page explains the *BPM* program. The *BPM* program retrieve, store and output 
+This manual page explains the *BPM* program. The *BPM* program retrieves, stores and outputs 
 blood pressure measurements from a Beurer BM56 Blood Pressure Monitor.
 (Any device based on  Andon Blood Pressure Meter KD001 should work).
 
 Be default these devices can only store up to 60 data points.
 This tool is written to extend that and allow the data to be used by 3rd party programs like gnuplot.
-It outputs the stored points in different formats like txt and csv, and if requested, filter multiple measurements taken at the same time. 
+It outputs the stored points in different formats like txt and csv, and if requested, filter 
+multiple measurements taken at the same time. 
 
 
 COMMANDS
@@ -32,17 +33,17 @@ Multiple commands can be specified in one go, they are handled in order.
 Import data from the Blood Pressure Monitor into the local database.
 
  * *list*
-List all the logged data points.
+List all logged data points.
 
  * *csv*
-Output the logged data points in Comma Separated Value format.
+Output logged data points in Comma Separated Value format.
 
  * *txt*
-Output the logged data points in simple text format.
+Output logged data points in simple text format.
 This format can be used directly in gnuplot.
 
  * *avg*
-Display average Systolic and Diastolic preasure.
+Display average systolic and diastolic pressure.
 
  * *filter*
 Measurements taken within 10 minutes of each other are averaged.
@@ -55,7 +56,8 @@ EXAMPLES
 
    bpm import filter csv
 
-Imports the latest samples from the Blood Pressure Monitor and output a filtered comma separated value list.
+Imports the latest samples from the Blood Pressure Monitor and outputs a filtered, comma separated 
+value list.
 
 ENVIRONMENT VARIABLES
 ---------------------
@@ -64,13 +66,15 @@ BPM obeys the following environment variables:
 
 *  *BPM_PATH*
 The full path to the database file.
-'Default'
+
+'Default:'
 
  $(HOME)/.bpm.sqlite3
 
 * *BPM_DEVICE*
 The device node pointing to the serial device of the Bloop Pressure Monitor
-'Default'
+
+'Default:'
 
  /dev/ttyUSB0
 
@@ -91,7 +95,8 @@ Please report bugs on the GITHUB issues page: https://github.com/DaveDavenport/b
 NOTES
 -----
 
-The program is available as-is. It is not a medical-grade program and should not be used for this purpose.
+The program is available as-is. It is not a medical-grade program and should not be used for this 
+purpose.
 
 SEE ALSO
 --------

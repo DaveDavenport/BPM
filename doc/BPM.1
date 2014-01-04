@@ -34,7 +34,7 @@ BPM \- Small command\-line tool to store data from Beurer BM58 Blood Pressure Mo
 bpm [\fIcommand\fR]
 .SH "DESCRIPTION"
 .sp
-This manual page explains the \fBBPM\fR program\&. The \fBBPM\fR program retrieve, store and output blood pressure measurements from a Beurer BM56 Blood Pressure Monitor\&. (Any device based on Andon Blood Pressure Meter KD001 should work)\&.
+This manual page explains the \fBBPM\fR program\&. The \fBBPM\fR program retrieves, stores and outputs blood pressure measurements from a Beurer BM56 Blood Pressure Monitor\&. (Any device based on Andon Blood Pressure Meter KD001 should work)\&.
 .sp
 Be default these devices can only store up to 60 data points\&. This tool is written to extend that and allow the data to be used by 3rd party programs like gnuplot\&. It outputs the stored points in different formats like txt and csv, and if requested, filter multiple measurements taken at the same time\&.
 .SH "COMMANDS"
@@ -62,7 +62,7 @@ Import data from the Blood Pressure Monitor into the local database\&.
 .IP \(bu 2.3
 .\}
 \fBlist\fR
-List all the logged data points\&.
+List all logged data points\&.
 .RE
 .sp
 .RS 4
@@ -74,7 +74,7 @@ List all the logged data points\&.
 .IP \(bu 2.3
 .\}
 \fBcsv\fR
-Output the logged data points in Comma Separated Value format\&.
+Output logged data points in Comma Separated Value format\&.
 .RE
 .sp
 .RS 4
@@ -86,7 +86,7 @@ Output the logged data points in Comma Separated Value format\&.
 .IP \(bu 2.3
 .\}
 \fBtxt\fR
-Output the logged data points in simple text format\&. This format can be used directly in gnuplot\&.
+Output logged data points in simple text format\&. This format can be used directly in gnuplot\&.
 .RE
 .sp
 .RS 4
@@ -98,7 +98,7 @@ Output the logged data points in simple text format\&. This format can be used d
 .IP \(bu 2.3
 .\}
 \fBavg\fR
-Display average Systolic and Diastolic preasure\&.
+Display average systolic and diastolic pressure\&.
 .RE
 .sp
 .RS 4
@@ -124,7 +124,7 @@ bpm import filter csv
 .RE
 .\}
 .sp
-Imports the latest samples from the Blood Pressure Monitor and output a filtered comma separated value list\&.
+Imports the latest samples from the Blood Pressure Monitor and outputs a filtered, comma separated value list\&.
 .SH "ENVIRONMENT VARIABLES"
 .sp
 BPM obeys the following environment variables:
@@ -139,7 +139,9 @@ BPM obeys the following environment variables:
 .\}
 \fBBPM_PATH\fR
 The full path to the database file\&.
-\fIDefault\fR
+.RE
+.sp
+\fIDefault:\fR
 .sp
 .if n \{\
 .RS 4
@@ -150,7 +152,6 @@ $(HOME)/\&.bpm\&.sqlite3
 .if n \{\
 .RE
 .\}
-.RE
 .sp
 .RS 4
 .ie n \{\
@@ -162,7 +163,9 @@ $(HOME)/\&.bpm\&.sqlite3
 .\}
 \fBBPM_DEVICE\fR
 The device node pointing to the serial device of the Bloop Pressure Monitor
-\fIDefault\fR
+.RE
+.sp
+\fIDefault:\fR
 .sp
 .if n \{\
 .RS 4
@@ -173,7 +176,6 @@ The device node pointing to the serial device of the Bloop Pressure Monitor
 .if n \{\
 .RE
 .\}
-.RE
 .SH "SUPPORTED DEVICES"
 .sp
 The following device(s) are known to work:
