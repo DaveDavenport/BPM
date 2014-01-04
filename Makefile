@@ -67,3 +67,4 @@ doc:
 
 install: $(BUILD_DIR)/$(PROGRAM)
 	install $^ $(PREFIX)/bin/$(PROGRAM)
+	install doc/bpm.1 $(PREFIX)/share/man/man1/

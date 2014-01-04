@@ -1,0 +1,84 @@
+.TH BPM  "2014-1-4" "" "gnuplot(1)"
+
+.SH NAME
+BPM \- Small command-line tool to store data from Beurer BM58 Blood Pressure Monitor
+
+..SH SYNOPSIS
+.B bpm
+.RI [ commands ]
+.br
+
+.SH DESCRIPTION
+This manual page explains the \fBBPM\fP program. The \fBBPM\fP program retrieve, store and output 
+blood pressure measurements from a Beurer BM56 Blood Pressure Monitor.
+(Any device based on  Andon Blood Pressure Meter KD001 should work).
+
+Be default these devices can only store up to 60 data points.
+This tool is written to extend that and allow the data to be used by 3rd party programs like gnuplot.
+It outputs the stored points in different formats like txt and csv, and if requested, filter multiple measurements taken at the same time. 
+
+
+.SH COMMANDS
+Multiple commands can be specified in one go, they are handled in order.
+
+.IP \fBimport\fP
+Import data from the Blood Pressure Monitor into the local database.
+
+.IP \fBlist\fP
+List all the logged data points.
+
+.IP \fBcsv\fP
+Output the logged data points in Comma Separated Value format.
+
+.IP \fBtxt\fP
+Output the logged data points in simple text format.
+This format can be used directly in gnuplot.
+
+.IP \fBavg\fP
+Display average Systolic and Diastolic preasure.
+
+.IP \fBfilter\fP
+Measurements taken within 10 minutes of each other are averaged.
+
+
+
+
+.SH EXAMPLES
+
+.B bpm import filter csv
+
+Imports the latest samples from the Blood Pressure Monitor and output a filtered comma separated value list.
+
+.SH ENVIRONMENT VARIABLES
+
+BPM obeys the following environment variables:
+
+.IP \fBBPM_PATH\fP
+The full path to the database file.
+.br
+.I Default
+$(HOME)/.bpm.sqlite3
+
+.IP \fBBPM_DEVICE\fP
+The device node pointing to the serial device of the Bloop Pressure Monitor
+.br
+.I Default
+/dev/ttyUSB0
+
+
+.SH SUPPORTED DEVICES
+
+The following device(s) are known to work:
+
+.B Beurer medical BM58
+
+
+.SH BUGS
+
+Please report bugs on the GITHUB issues page: https://github.com/DaveDavenport/bpm
+
+.SH NOTES
+
+The program is available as-is. It is not a medical-grade program and should not be used for this purpose.
+
+.SH "SEE ALSO"
