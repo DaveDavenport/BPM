@@ -1,15 +1,21 @@
-.TH BPM  "2014-1-4" "" "gnuplot(1)"
+BPM(1)
+======
+:Author: Qball Cow qball@gmpclient.org
+:doctype: manpage
 
-.SH NAME
-BPM \- Small command-line tool to store data from Beurer BM58 Blood Pressure Monitor
 
-..SH SYNOPSIS
-.B bpm
-.RI [ commands ]
-.br
+Name
+----
+BPM - Small command-line tool to store data from Beurer BM58 Blood Pressure Monitor
 
-.SH DESCRIPTION
-This manual page explains the \fBBPM\fP program. The \fBBPM\fP program retrieve, store and output 
+Synopsys
+--------
+bpm ['command']
+
+DESCRIPTION
+-----------
+
+This manual page explains the *BPM* program. The *BPM* program retrieve, store and output 
 blood pressure measurements from a Beurer BM56 Blood Pressure Monitor.
 (Any device based on  Andon Blood Pressure Meter KD001 should work).
 
@@ -18,67 +24,75 @@ This tool is written to extend that and allow the data to be used by 3rd party p
 It outputs the stored points in different formats like txt and csv, and if requested, filter multiple measurements taken at the same time. 
 
 
-.SH COMMANDS
+COMMANDS
+--------
 Multiple commands can be specified in one go, they are handled in order.
 
-.IP \fBimport\fP
+ * *import*
 Import data from the Blood Pressure Monitor into the local database.
 
-.IP \fBlist\fP
+ * *list*
 List all the logged data points.
 
-.IP \fBcsv\fP
+ * *csv*
 Output the logged data points in Comma Separated Value format.
 
-.IP \fBtxt\fP
+ * *txt*
 Output the logged data points in simple text format.
 This format can be used directly in gnuplot.
 
-.IP \fBavg\fP
+ * *avg*
 Display average Systolic and Diastolic preasure.
 
-.IP \fBfilter\fP
+ * *filter*
 Measurements taken within 10 minutes of each other are averaged.
 
 
 
 
-.SH EXAMPLES
+EXAMPLES
+--------
 
-.B bpm import filter csv
+   bpm import filter csv
 
 Imports the latest samples from the Blood Pressure Monitor and output a filtered comma separated value list.
 
-.SH ENVIRONMENT VARIABLES
+ENVIRONMENT VARIABLES
+---------------------
 
 BPM obeys the following environment variables:
 
-.IP \fBBPM_PATH\fP
+*  *BPM_PATH*
 The full path to the database file.
-.br
-.I Default
-$(HOME)/.bpm.sqlite3
+'Default'
 
-.IP \fBBPM_DEVICE\fP
+ $(HOME)/.bpm.sqlite3
+
+* *BPM_DEVICE*
 The device node pointing to the serial device of the Bloop Pressure Monitor
-.br
-.I Default
-/dev/ttyUSB0
+'Default'
+
+ /dev/ttyUSB0
 
 
-.SH SUPPORTED DEVICES
+SUPPORTED DEVICES
+-----------------
 
 The following device(s) are known to work:
 
-.B Beurer medical BM58
+ * Beurer medical BM58
 
 
-.SH BUGS
+BUGS
+----
 
 Please report bugs on the GITHUB issues page: https://github.com/DaveDavenport/bpm
 
-.SH NOTES
+NOTES
+-----
 
 The program is available as-is. It is not a medical-grade program and should not be used for this purpose.
 
-.SH "SEE ALSO"
+SEE ALSO
+--------
+gnuplot(1)
