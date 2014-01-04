@@ -92,6 +92,11 @@ BUGS
 
 Please report bugs on the GITHUB issues page: https://github.com/DaveDavenport/bpm
 
+LICENSE
+-------
+
+This program is licensed under GPL 2.0.
+
 NOTES
 -----
 
