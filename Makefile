@@ -55,11 +55,6 @@ build/$(PROGRAM): $(OBJECTS)
 clean:
 	rm -rf build 
 
-.PHONY: plot
-plot: $(BUILD_DIR)/$(PROGRAM)
-	gnuplot plot.gnuplot
-
-
 .PHONY: doc
 doc:
 	doxygen	doc/doxygen.doxy
