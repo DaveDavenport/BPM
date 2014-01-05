@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <stdint.h>
 #include <time.h>
 #include <list>
