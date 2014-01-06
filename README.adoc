@@ -53,6 +53,8 @@ Measurements taken within 10 minutes of each other are averaged.
  * *plot*
 Call gnuplot to plot the blood pressure.
 
+ * *status*
+Print status based on last measurements.
 
 
 

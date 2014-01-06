@@ -55,6 +55,23 @@
 namespace BPM
 {
 
+    enum WHO_class {
+        GRADE_3,
+        GRADE_2,
+        GRADE_1,
+        HIGH,
+        NORMAL,
+        OPTIMAL,
+        N_CLASS
+    };
+    const char *WHO_class_str[N_CLASS] = {
+        "Severe Hypertension",
+        "Moderate hypertension",
+        "Mild hypertension",
+        "High-normal",
+        "Normal",
+        "Optimal"
+    };
     /**
      * The measurement field as returned from the BPM.
      * This struct is 'raw' read from the serial link.
@@ -73,6 +90,38 @@ namespace BPM
             uint8_t min;
             uint8_t year;
         public:
+
+
+            WHO_class get_classification ( ) {
+                auto wc = OPTIMAL;
+
+                if ( systolic >= ( 180-25 ) ) {
+                    wc = GRADE_3;
+                } else if ( systolic >= ( 160 -25 ) )  {
+                    wc = GRADE_2;
+                } else if ( systolic >= ( 140 -25 ) )  {
+                    wc = GRADE_1;
+                } else if ( systolic >= ( 130 -25 ) )  {
+                    wc = HIGH;
+                } else if ( systolic >= ( 120 -25 ) )  {
+                    wc = NORMAL;
+                }
+
+                if ( diastolic >= ( 110-25 ) ) {
+                    wc = GRADE_3;
+                } else if ( diastolic >= ( 100 -25 ) ) {
+                    wc = GRADE_2;
+                } else if ( diastolic >= ( 90-25 ) ) {
+                    wc = GRADE_1;
+                } else if ( diastolic >= ( 85-25 ) ) {
+                    wc = HIGH;
+                } else if ( diastolic >= ( 80-25 ) ) {
+                    wc = NORMAL;
+                }
+
+                return wc;
+            }
+
             /**
              * @param val the new systolic value.
              * Set the systolic value for this measurement
@@ -156,7 +205,9 @@ namespace BPM
                 time_t t = this->get_time();
                 timestr = localtime( &t );
                 strftime( buffer, 1024, "%c", timestr );
-                fprintf( out, "%s %d %d\n", buffer, this->get_systolic(), this->get_diastolic() );
+                fprintf( out, "%s %3d %3d '%s'\n", buffer, this->get_systolic(),
+                         this->get_diastolic(),
+                         WHO_class_str[this->get_classification()] );
             }
             void print_csv( FILE *out = stdout ) {
                 fprintf( stdout,"\"%llu\",\"%d\",\"%d\",\"%d\"\n",
@@ -186,6 +237,7 @@ namespace BPM
             sqlite3_stmt *insert_stmt = nullptr;
             sqlite3_stmt *list_all_stmt = nullptr;
             sqlite3_stmt *get_average_stmt = nullptr;
+            sqlite3_stmt *list_last_stmt = nullptr;
 
             /**
              * Add the database definition.
@@ -235,6 +287,16 @@ namespace BPM
 
                 if ( retv != SQLITE_OK ) {
                     fprintf( stderr, "Failed to prepare statement: %s:%i\n", get_average_str,retv );
+                }
+
+
+                const char * const list_last_str = "SELECT * from bpp WHERE time >= ? ORDER BY time ASC ";
+                retv = sqlite3_prepare_v2( this->handle,
+                                           list_last_str, -1,
+                                           &( this->list_last_stmt ),nullptr );
+
+                if ( retv != SQLITE_OK ) {
+                    fprintf( stderr, "Failed to prepare statement: %s:%i\n", list_last_str,retv );
                 }
             }
 
@@ -324,6 +386,42 @@ namespace BPM
                 return list;
             }
 
+            std::list<measurement>  list_since( time_t last ) {
+                std::list<measurement> list;
+                int rc;
+                sqlite3_bind_int64( this->list_last_stmt, 1, last );
+
+                do {
+                    rc = sqlite3_step( this->list_last_stmt );
+
+                    switch ( rc )  {
+                        case SQLITE_DONE:
+                            break;
+
+                        case SQLITE_ROW: {
+                            measurement msg;
+                            time_t time = sqlite3_column_int64( this->list_last_stmt,0 );
+                            msg.set_time( time );
+                            msg.set_systolic( sqlite3_column_int( this->list_last_stmt,1 ) );
+                            msg.set_diastolic( sqlite3_column_int( this->list_last_stmt,2 ) );
+                            msg.set_bpm( sqlite3_column_int( this->list_last_stmt,3 ) );
+                            list.push_back( msg );
+                        }
+                        break;
+
+                        default:
+                            fprintf( stderr, "Error iterating table: %s\n",
+                                     sqlite3_errmsg( this->handle ) );
+                            break;
+                    }
+
+                } while ( rc == SQLITE_ROW );
+
+                // Reset the query.
+                sqlite3_reset( this->list_last_stmt );
+                return list;
+            }
+
 
             Storage() {
                 // Check if there is an override.
@@ -360,6 +458,11 @@ namespace BPM
                 if ( this->list_all_stmt != nullptr ) {
                     sqlite3_finalize( this->list_all_stmt );
                     this->list_all_stmt = nullptr;
+                }
+
+                if ( this->list_last_stmt != nullptr ) {
+                    sqlite3_finalize( this->list_last_stmt );
+                    this->list_last_stmt = nullptr;
                 }
 
                 if ( this->get_average_stmt != nullptr ) {
@@ -523,6 +626,7 @@ namespace BPM
                 printf( "\ttxt:\tGenerate a TXT file for the measurements. Use for gnuplot.\n" );
                 printf( "\timport:\tImport entries from  BPM.\n" );
                 printf( "\tplot:\tCall gnuplot to plot the BPM.\n" );
+                printf( "\tstatus:\tPrint status based on last measurements.\n" );
                 printf( "\n" );
                 printf( "Environments:\n" );
                 printf( "\tBPM_DEVICE:\tDevice node to read samples from.\n" );
@@ -643,6 +747,49 @@ namespace BPM
                 return retv;
             }
 
+            void status() {
+                // Get last measurement.
+                time_t now = time( nullptr );
+
+                int days = 7;
+                // Remove 5 days
+                now -= 60*60*24*days;
+
+
+                auto list = this->storage.list_since( now );
+
+                if ( list.empty() ) {
+                    printf( "No samples in the last %d days\n",days );
+                    return;
+                }
+
+                WHO_class highest = OPTIMAL;
+                unsigned int dia = 0;
+                unsigned int sys = 0;
+                measurement mes;
+
+                for ( auto iter : list ) {
+                    auto max = iter.get_classification();
+
+                    if ( max < highest ) highest = max;
+
+                    dia += iter.get_diastolic();
+                    sys += iter.get_systolic();
+                }
+
+                dia /= list.size();
+                sys /= list.size();
+                mes.set_systolic( sys );
+                mes.set_diastolic( dia );
+                printf( "\n" );
+                printf( "Highest WHO Classification: %s\n",
+                        WHO_class_str[highest] );
+                printf( "Average WHO Classification: %s\n",
+                        WHO_class_str[mes.get_classification()] );
+                printf( "Average Systolic:           %d\n", sys );
+                printf( "Average Diastolic:          %d\n", dia );
+
+            }
 
         public:
             Main() {}
@@ -663,6 +810,8 @@ namespace BPM
                         this->filter = true;
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
                         this->plot();
+                    } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
+                        this->status();
                     } else {
                         this->help();
                         return EXIT_FAILURE;
