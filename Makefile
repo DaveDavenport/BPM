@@ -23,8 +23,8 @@ QUIET=@
 
 PREFIX?=$(HOME)/.local/
 
-SOURCES=$(wildcard *.cc)
-OBJECTS=$(SOURCES:%.cc=build/objects/%.o)
+SOURCES=$(wildcard source/*.cc)
+OBJECTS=$(SOURCES:source/%.cc=build/objects/%.o)
 PROGRAM=bpm
 CXXFLAGS=-g3 -Wall -std=c++0x $(shell $(PKG_CONFIG) --cflags sqlite3) -DPREFIX="\"$(PREFIX)\""
 LDXXFLAGS=
@@ -35,7 +35,7 @@ LIBS=$(shell $(PKG_CONFIG) --libs sqlite3)
 BUILD_DIR=build
 OBJECTS_DIR=$(BUILD_DIR)/objects
 
-all: $(BUILD_DIR)/$(PROGRAM) 
+all: $(BUILD_DIR)/$(PROGRAM) $(BUILD_DIR)/BPM.1 
 
 
 $(BUILD_DIR):
@@ -44,7 +44,7 @@ $(BUILD_DIR):
 $(OBJECTS_DIR): $(BUILD_DIR) 
 	$(QUIET)mkdir -p $@
 
-build/objects/%.o: %.cc | Makefile $(OBJECTS_DIR) 
+build/objects/%.o: source/%.cc | Makefile $(OBJECTS_DIR) 
 	$(info Compiling: $^ -> $@)
 	$(QUIET)$(CXX) $(CXXFLAGS) -c -o $@ $^
 
@@ -63,13 +63,14 @@ doc:
 install: $(BUILD_DIR)/$(PROGRAM) |  manpage
 	install $^ $(PREFIX)/bin/
 	install -d $(PREFIX)/share/man/man1/ $(PREFIX)/share/$(PROGRAM)/
-	install doc/BPM.1 $(PREFIX)/share/man/man1/
+	install $(BUILD_DIR)/BPM.1 $(PREFIX)/share/man/man1/
 	install data/plot.gnuplot $(PREFIX)/share/$(PROGRAM)/
 
-manpage: doc/BPM.1
+manpage: $(BUILD_DIR)/BPM.1
 
-doc/BPM.1: README.adoc
-	a2x --doctype manpage --format manpage README.adoc -D doc/
+$(BUILD_DIR)/BPM.1: doc/README.adoc
+	$(info Converting: Create manpage)
+	$(QUIET)a2x --doctype manpage --format manpage $^ -D $(BUILD_DIR)/
 
 indent:
 	@astyle --style=linux -S -C -D -N -H -L -W3 -f bpm.cc

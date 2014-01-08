@@ -1,6 +1,8 @@
 set term pngcairo dashed size 1200,400 
 set output 'bpm.png'
 
+set fit quiet
+
 set datafile separator " " 
 
 set xdata time
@@ -18,6 +20,7 @@ set style line 2 lt 1 lc rgb "#007609" lw 2
 set style line 3 lt 2 lc rgb "#760909" lw 1
 
 FIT_LIMIT=1e-18
+
 avgsys(x)=c+mean_systolic*(x)
 fit avgsys(x) "< bpm filter txt" using 1:2 via c,mean_systolic
 
