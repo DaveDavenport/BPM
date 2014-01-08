@@ -1,6 +1,6 @@
 /*
  *    This file is part of BPM.
- *    Written by Qball Cow <qball@gmpclient.org> 2013
+ *    Written by Qball Cow <qball@gmpclient.org> 2013-2014
  *
  *    BPM is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
