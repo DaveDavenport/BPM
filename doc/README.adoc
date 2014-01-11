@@ -21,7 +21,7 @@ This manual page explains the *BPM* program. The *BPM* program retrieves, stores
 blood pressure measurements from a Beurer BM56 Blood Pressure Monitor.
 (Any device based on  Andon Blood Pressure Meter KD001 should work).
 
-Be default these devices can only store up to 60 data points.
+By default these devices can only store up to 60 data points.
 This tool is written to extend that and allow the data to be used by 3rd party programs like gnuplot.
 It outputs the stored points in different formats like txt and csv, and if requested, filter 
 multiple measurements taken at the same time. 
