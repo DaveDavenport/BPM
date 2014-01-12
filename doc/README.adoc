@@ -50,13 +50,10 @@ Display average systolic and diastolic pressure.
  * *filter*
 Measurements taken within 10 minutes of each other are averaged.
 
- * *filter <mins>*
+ * *filter <filter>*
 Measurements taken within <mins> minutes of each other are averaged.
 
- * *filter <days>d*
-Measurements taken within <days> days of each other are averaged.
-
- * *plot*
+ * *plot <filter>*
 Call gnuplot to plot the blood pressure.
 
  * *status*
@@ -66,6 +63,16 @@ Print status based on last measurements.
 This help message.
 
 
+FILTER SYNTAX
+-------------
+
+If left empty the default is used (10m filter). It allows two formats
+
+ * <minutes>
+
+ * <days>d
+
+So to filter samples per 1 day, type 'filter 1d'.
 
 EXAMPLES
 --------
