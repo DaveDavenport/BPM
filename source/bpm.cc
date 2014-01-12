@@ -197,6 +197,15 @@ namespace BPM
                 this->month = timestr->tm_mon+1;
                 this->year = timestr->tm_year-100;
             }
+            uint8_t get_day() {
+                return this->day;
+            }
+            uint8_t get_month() {
+                return this->month;
+            }
+            uint8_t get_year() {
+                return this->year;
+            }
 
             // Dump content of struct.
             void print( FILE *out = stdout ) {
@@ -272,6 +281,7 @@ namespace BPM
                 }
 
                 const char * const list_all_str = "SELECT * from bpp ORDER BY time ASC";
+
                 retv = sqlite3_prepare_v2( this->handle,
                                            list_all_str, -1,
                                            &( this->list_all_stmt ),nullptr );
@@ -281,6 +291,7 @@ namespace BPM
                 }
 
                 const char * const get_average_str = "SELECT avg(systolic), avg(diastolic) FROM bpp;";
+
                 retv = sqlite3_prepare_v2( this->handle,
                                            get_average_str, -1,
                                            &( this->get_average_stmt ), nullptr );
@@ -291,6 +302,7 @@ namespace BPM
 
 
                 const char * const list_last_str = "SELECT * from bpp WHERE time >= ? ORDER BY time ASC ";
+
                 retv = sqlite3_prepare_v2( this->handle,
                                            list_last_str, -1,
                                            &( this->list_last_stmt ),nullptr );
@@ -693,8 +705,25 @@ namespace BPM
             /**
              * All points within 'filter_range' time get merged.
              */
-            const int filter_range = 60*10;
+            typedef bool ( filter_function_t )( measurement &a, measurement &b, int range );
+            int filter_range = 60*10;
 
+
+            static bool filter_list_by_second( measurement &a, measurement &b, int range ) {
+                auto diff = a.get_time()-b.get_time();
+                return ( labs( diff ) < ( range ) );
+            }
+            static bool filter_list_by_day( measurement &a, measurement &b, int range ) {
+                if ( a.get_year() != b.get_year() || a.get_month() != b.get_month() ) {
+                    return false;
+                }
+
+                auto diff = a.get_day()-b.get_day();
+                return ( labs( diff ) < ( range ) );
+            }
+
+
+            filter_function_t *filter_function = filter_list_by_second;
             /**
              * Filter the list.
              *
@@ -714,32 +743,28 @@ namespace BPM
                 measurement last = *( ls.begin() );
                 int elements = 1;
 
-                for ( auto it : ls ) {
-                    {
-                        auto diff = it.get_time()-last.get_time();
-
-                        if ( labs( diff ) < ( filter_range ) ) {
-                            if ( it.get_diastolic() < last.get_diastolic() ) {
-                                // Diastolic.
-                                double dia = last.get_diastolic()*( elements/( double )( elements+1 ) );
-                                dia+=it.get_diastolic()*( 1/( double )( elements+1 ) );
-                                last.set_diastolic( dia );
-                                // Systolic.
-                                double sys = last.get_systolic()*( elements/( double )( elements+1 ) );
-                                sys+=it.get_systolic()*( 1/( double )( elements+1 ) );
-                                last.set_systolic( sys );
-                                // BPM
-                                double bpm = last.get_bpm()*( elements/( double )( elements+1 ) );
-                                sys+=it.get_bpm()*( 1/( double )( elements+1 ) );
-                                last.set_bpm( bpm );
-                            }
-
-                            elements++;
-                        } else {
-                            retv.push_back( last );
-                            last = it;
-                            elements = 1;
+            for ( auto it : ls ) {
+                    if ( filter_function( it, last,filter_range ) ) {
+                        if ( it.get_diastolic() < last.get_diastolic() ) {
+                            // Diastolic.
+                            double dia = last.get_diastolic()*( elements/( double )( elements+1 ) );
+                            dia+=it.get_diastolic()*( 1/( double )( elements+1 ) );
+                            last.set_diastolic( dia );
+                            // Systolic.
+                            double sys = last.get_systolic()*( elements/( double )( elements+1 ) );
+                            sys+=it.get_systolic()*( 1/( double )( elements+1 ) );
+                            last.set_systolic( sys );
+                            // BPM
+                            double bpm = last.get_bpm()*( elements/( double )( elements+1 ) );
+                            sys+=it.get_bpm()*( 1/( double )( elements+1 ) );
+                            last.set_bpm( bpm );
                         }
+
+                        elements++;
+                    } else {
+                        retv.push_back( last );
+                        last = it;
+                        elements = 1;
                     }
                 }
 
@@ -768,7 +793,7 @@ namespace BPM
                 unsigned int sys = 0;
                 measurement mes;
 
-                for ( auto iter : list ) {
+            for ( auto iter : list ) {
                     auto max = iter.get_classification();
 
                     if ( max < highest ) highest = max;
@@ -791,6 +816,15 @@ namespace BPM
 
             }
 
+            void set_filter_range( int value ) {
+                this->filter_range = 60*value;
+                this->filter_function = filter_list_by_second;
+            }
+            void set_filter_range_day( int value ) {
+                this->filter_range = value;
+                this->filter_function = filter_list_by_day;
+            }
+
         public:
             Main() {}
 
@@ -808,6 +842,26 @@ namespace BPM
                         this->print_avg();
                     } else if ( strncmp( argv[i], "filter", 6 ) == 0 ) {
                         this->filter = true;
+
+                        if ( ( i+1 ) < argc ) {
+                            char *endptr = nullptr;
+                            long int res = strtol( argv[i+1], &endptr, 10 );
+                            printf( "%d %d %s %ld\n", errno,ERANGE, endptr, res );
+
+                            if ( errno == ERANGE ) {
+                                continue;
+                            }
+
+                            if ( *endptr == '\0' ) {
+                                // Increment parsed arguments.
+                                i++;
+                                this->set_filter_range( ( int )res );
+                            } else if ( *endptr == 'd' ) {
+                                // Increment parsed arguments.
+                                i++;
+                                this->set_filter_range_day( ( int )res );
+                            }
+                        }
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
                         this->plot();
                     } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
