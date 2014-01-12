@@ -687,63 +687,61 @@ namespace BPM
                 int fd[2];
                 pid_t childpid;
 
-                pipe(fd);
-                if((childpid = fork()) == -1)
-                {
-                        perror("fork");
-                        exit(1);
+                pipe( fd );
+
+                if ( ( childpid = fork() ) == -1 ) {
+                    perror( "fork" );
+                    exit( 1 );
                 }
 
-                if(childpid == 0)
-                {
-                        close(fd[1]);
-                        close(0);
-                        /* Child process closes up output side of pipe */
-                        dup2(fd[0],0);
-                        int retv = execlp ( "gnuplot", "gnuplot", NULL);
-                        //int retv = execlp ( "tee", "tee","output.txt", NULL);
-                        close(fd[0]);
-                        exit(retv);
+                if ( childpid == 0 ) {
+                    close( fd[1] );
+                    close( 0 );
+                    /* Child process closes up output side of pipe */
+                    dup2( fd[0],0 );
+                    int retv = execlp ( "gnuplot", "gnuplot", NULL );
+                    //int retv = execlp ( "tee", "tee","output.txt", NULL);
+                    close( fd[0] );
+                    exit( retv );
+                } else {
+                    printf( "Calling gnuplot, generating output: bpm.png\n" );
+                    /* Parent process closes up input side of pipe */
+                    close( fd[0] );
                 }
-                else
-                {
-                        printf("Calling gnuplot, generating output: bpm.png\n");
-                        /* Parent process closes up input side of pipe */
-                        close(fd[0]);
-                }
+
                 // Gnuplot header.
-                write(fd[1], gnuplot_file, strlen(gnuplot_file));
+                write( fd[1], gnuplot_file, strlen( gnuplot_file ) );
 
 
                 char buffer[1024] = {'\0',};
 
                 // Average Systolic.
-                snprintf(buffer, 1024, "avgsys(x)=c+mean_systolic*(x)\n");
-                write(fd[1], buffer, strlen(buffer));
-                snprintf(buffer, 1024,
-                        "fit avgsys(x) \"< bpm filter %s txt\" using 1:2 via c,mean_systolic\n",
-                        range);
-                write(fd[1], buffer, strlen(buffer));
+                snprintf( buffer, 1024, "avgsys(x)=c+mean_systolic*(x)\n" );
+                write( fd[1], buffer, strlen( buffer ) );
+                snprintf( buffer, 1024,
+                          "fit avgsys(x) \"< bpm filter %s txt\" using 1:2 via c,mean_systolic\n",
+                          range );
+                write( fd[1], buffer, strlen( buffer ) );
 
 
                 // Average Diastolic.
-                snprintf(buffer, 1024, "avgdia(x)=y0+mean_diastolic*(x)\n");
-                write(fd[1], buffer, strlen(buffer));
-                snprintf(buffer, 1024,
-                        "fit avgdia(x) \"< bpm filter %s txt\" using 1:3 via y0,mean_diastolic\n",
-                        range);
-                write(fd[1], buffer, strlen(buffer));
+                snprintf( buffer, 1024, "avgdia(x)=y0+mean_diastolic*(x)\n" );
+                write( fd[1], buffer, strlen( buffer ) );
+                snprintf( buffer, 1024,
+                          "fit avgdia(x) \"< bpm filter %s txt\" using 1:3 via y0,mean_diastolic\n",
+                          range );
+                write( fd[1], buffer, strlen( buffer ) );
 
                 // Plot the graph.
-                snprintf(buffer, 1024,
-                        "plot \"< bpm filter %s txt\" using 1:2 with lines title "\
-                        "\"systolic\" ls 1,\\\n"\
-                        "\"< bpm filter %s txt\" using 1:3 with lines title \"diastolic\" ls 2,\\\n"\
-                        "avgsys(x) ls 3 title 'avg. systolic',\\\n"\
-                        "avgdia(x) ls 3 title 'avg. diastolic'",range,range); 
+                snprintf( buffer, 1024,
+                          "plot \"< bpm filter %s txt\" using 1:2 with lines title "\
+                          "\"systolic\" ls 1,\\\n"\
+                          "\"< bpm filter %s txt\" using 1:3 with lines title \"diastolic\" ls 2,\\\n"\
+                          "avgsys(x) ls 3 title 'avg. systolic',\\\n"\
+                          "avgdia(x) ls 3 title 'avg. diastolic'",range,range );
 
-                write(fd[1], buffer, strlen(buffer));
-                close(fd[1]);
+                write( fd[1], buffer, strlen( buffer ) );
+                close( fd[1] );
             }
 
 
@@ -788,7 +786,7 @@ namespace BPM
                 measurement last = *( ls.begin() );
                 int elements = 1;
 
-            for ( auto it : ls ) {
+                for ( auto it : ls ) {
                     if ( filter_function( it, last,filter_range ) ) {
                         if ( it.get_diastolic() < last.get_diastolic() ) {
                             // Diastolic.
@@ -838,7 +836,7 @@ namespace BPM
                 unsigned int sys = 0;
                 measurement mes;
 
-            for ( auto iter : list ) {
+                for ( auto iter : list ) {
                     auto max = iter.get_classification();
 
                     if ( max < highest ) highest = max;
@@ -907,16 +905,16 @@ namespace BPM
                             }
                         }
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
-                        this->plot(((i+1) < argc)?(argv[++i]):"");
+                        this->plot( ( ( i+1 ) < argc )?( argv[++i] ):"" );
                     } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
                         this->status();
                     } else if ( strncmp( argv[i], "help", 4 ) == 0 ) {
                         this->help();
                         return EXIT_FAILURE;
                     } else {
-                        fprintf(stderr, "Invalid command line option: '%s'\n", argv[i]);
-                        fprintf(stderr, "Type: '%s help' on information on how to use this tool.\n", 
-                                argv[0]);
+                        fprintf( stderr, "Invalid command line option: '%s'\n", argv[i] );
+                        fprintf( stderr, "Type: '%s help' on information on how to use this tool.\n",
+                                 argv[0] );
                         return EXIT_FAILURE;
                     }
                 }
