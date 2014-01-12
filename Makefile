@@ -27,6 +27,7 @@ SOURCES=$(wildcard source/*.cc)
 OBJECTS=$(SOURCES:source/%.cc=build/objects/%.o)
 PROGRAM=bpm
 CXXFLAGS=-g3 -Wall -std=c++0x $(shell $(PKG_CONFIG) --cflags sqlite3) -DPREFIX="\"$(PREFIX)\""
+CXXFLAGS+=-DMANPAGE_PATH="\"$(PREFIX)/share/man/man1/BPM.1\""
 LDXXFLAGS=
 LIBS=$(shell $(PKG_CONFIG) --libs sqlite3)
 
@@ -63,7 +64,7 @@ doc:
 install: $(BUILD_DIR)/$(PROGRAM) |  manpage
 	install $^ $(PREFIX)/bin/
 	install -d $(PREFIX)/share/man/man1/ $(PREFIX)/share/$(PROGRAM)/
-	install $(BUILD_DIR)/BPM.1 $(PREFIX)/share/man/man1/
+	install $(BUILD_DIR)/BPM.1 $(PREFIX)/share/man/man1/BPM.1
 	install data/plot.gnuplot $(PREFIX)/share/$(PROGRAM)/
 
 manpage: $(BUILD_DIR)/BPM.1

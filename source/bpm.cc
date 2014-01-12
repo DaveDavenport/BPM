@@ -628,21 +628,11 @@ namespace BPM
              *
              */
             void help() {
-                printf( "BPM: Blood Pressure Monitor Client.\n" );
-                printf( "Usage: bpm <option><command>\n" );
-                printf( "Option:\n" );
-                printf( "\tfilter:\tAverage multiple samples within 10 minutes in the next commands.\n" );
-                printf( "Command:\n" );
-                printf( "\tlist:\tList the measurements\n" );
-                printf( "\tcsv:\tGenerate a CSV file for the measurements\n" );
-                printf( "\ttxt:\tGenerate a TXT file for the measurements. Use for gnuplot.\n" );
-                printf( "\timport:\tImport entries from  BPM.\n" );
-                printf( "\tplot:\tCall gnuplot to plot the BPM.\n" );
-                printf( "\tstatus:\tPrint status based on last measurements.\n" );
-                printf( "\n" );
-                printf( "Environments:\n" );
-                printf( "\tBPM_DEVICE:\tDevice node to read samples from.\n" );
-                printf( "\tBPM_PATH:\tDatabase file.\n" );
+                int code = execlp( "man","man", MANPAGE_PATH,NULL );
+
+                if ( code == -1 ) {
+                    fprintf( stderr, "Failed to execute man: %s\n", strerror( errno ) );
+                }
             }
 
             /**
@@ -866,8 +856,13 @@ namespace BPM
                         this->plot();
                     } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
                         this->status();
-                    } else {
+                    } else if ( strncmp( argv[i], "help", 4 ) == 0 ) {
                         this->help();
+                        return EXIT_FAILURE;
+                    } else {
+                        fprintf(stderr, "Invalid command line option: '%s'\n", argv[i]);
+                        fprintf(stderr, "Type: '%s help' on information on how to use this tool.\n", 
+                                argv[0]);
                         return EXIT_FAILURE;
                     }
                 }
