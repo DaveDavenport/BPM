@@ -72,5 +72,5 @@ $(BUILD_DIR)/BPM.1: doc/README.adoc
 	$(info Converting: Create manpage)
 	$(QUIET)a2x --doctype manpage --format manpage $^ -D $(BUILD_DIR)/
 
-indent:
-	@astyle --style=linux -S -C -D -N -H -L -W3 -f bpm.cc
+indent: $(SOURCES)
+	@astyle --style=linux -s4 -S -C -D -N -H -L -f $^ 
