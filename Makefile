@@ -65,7 +65,6 @@ install: $(BUILD_DIR)/$(PROGRAM) |  manpage
 	install $^ $(PREFIX)/bin/
 	install -d $(PREFIX)/share/man/man1/ $(PREFIX)/share/$(PROGRAM)/
 	install $(BUILD_DIR)/BPM.1 $(PREFIX)/share/man/man1/BPM.1
-	install data/plot.gnuplot $(PREFIX)/share/$(PROGRAM)/
 
 manpage: $(BUILD_DIR)/BPM.1
 

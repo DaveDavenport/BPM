@@ -30,6 +30,7 @@
 #include <sys/socket.h>
 #include <sqlite3.h>
 
+#include "gnuplot_content.hpp"
 /**
  * Serial port speed.
  * This is 4800bits/sec.
@@ -682,13 +683,67 @@ namespace BPM
                         std::get<0>( val ), std::get<1>( val ) );
             }
 
-            void plot( void ) {
-                std::string gnuplot_file = std::string( PREFIX )+"/share/bpm/plot.gnuplot";
-                int code = execlp( "gnuplot","gnuplot", gnuplot_file.c_str(), NULL );
+            void plot( const char *range ) {
+                int fd[2];
+                pid_t childpid;
 
-                if ( code == -1 ) {
-                    fprintf( stderr, "Failed to execute gnuplot: %s\n", strerror( errno ) );
+                pipe(fd);
+                if((childpid = fork()) == -1)
+                {
+                        perror("fork");
+                        exit(1);
                 }
+
+                if(childpid == 0)
+                {
+                        close(fd[1]);
+                        close(0);
+                        /* Child process closes up output side of pipe */
+                        dup2(fd[0],0);
+                        int retv = execlp ( "gnuplot", "gnuplot", NULL);
+                        //int retv = execlp ( "tee", "tee","output.txt", NULL);
+                        close(fd[0]);
+                        exit(retv);
+                }
+                else
+                {
+                        printf("Calling gnuplot, generating output: bpm.png\n");
+                        /* Parent process closes up input side of pipe */
+                        close(fd[0]);
+                }
+                // Gnuplot header.
+                write(fd[1], gnuplot_file, strlen(gnuplot_file));
+
+
+                char buffer[1024] = {'\0',};
+
+                // Average Systolic.
+                snprintf(buffer, 1024, "avgsys(x)=c+mean_systolic*(x)\n");
+                write(fd[1], buffer, strlen(buffer));
+                snprintf(buffer, 1024,
+                        "fit avgsys(x) \"< bpm filter %s txt\" using 1:2 via c,mean_systolic\n",
+                        range);
+                write(fd[1], buffer, strlen(buffer));
+
+
+                // Average Diastolic.
+                snprintf(buffer, 1024, "avgdia(x)=y0+mean_diastolic*(x)\n");
+                write(fd[1], buffer, strlen(buffer));
+                snprintf(buffer, 1024,
+                        "fit avgdia(x) \"< bpm filter %s txt\" using 1:3 via y0,mean_diastolic\n",
+                        range);
+                write(fd[1], buffer, strlen(buffer));
+
+                // Plot the graph.
+                snprintf(buffer, 1024,
+                        "plot \"< bpm filter %s txt\" using 1:2 with lines title "\
+                        "\"systolic\" ls 1,\\\n"\
+                        "\"< bpm filter %s txt\" using 1:3 with lines title \"diastolic\" ls 2,\\\n"\
+                        "avgsys(x) ls 3 title 'avg. systolic',\\\n"\
+                        "avgdia(x) ls 3 title 'avg. diastolic'",range,range); 
+
+                write(fd[1], buffer, strlen(buffer));
+                close(fd[1]);
             }
 
 
@@ -852,7 +907,7 @@ namespace BPM
                             }
                         }
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
-                        this->plot();
+                        this->plot(((i+1) < argc)?(argv[++i]):"");
                     } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
                         this->status();
                     } else if ( strncmp( argv[i], "help", 4 ) == 0 ) {
