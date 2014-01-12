@@ -836,7 +836,6 @@ namespace BPM
                         if ( ( i+1 ) < argc ) {
                             char *endptr = nullptr;
                             long int res = strtol( argv[i+1], &endptr, 10 );
-                            printf( "%d %d %s %ld\n", errno,ERANGE, endptr, res );
 
                             if ( errno == ERANGE ) {
                                 continue;

@@ -50,11 +50,20 @@ Display average systolic and diastolic pressure.
  * *filter*
 Measurements taken within 10 minutes of each other are averaged.
 
+ * *filter <mins>*
+Measurements taken within <mins> minutes of each other are averaged.
+
+ * *filter <days>d*
+Measurements taken within <days> days of each other are averaged.
+
  * *plot*
 Call gnuplot to plot the blood pressure.
 
  * *status*
 Print status based on last measurements.
+
+* *help*
+This help message.
 
 
 
@@ -93,6 +102,12 @@ The following device(s) are known to work:
 
  * Beurer medical BM58
 
+EXAMPLES
+--------
+
+  bpm filter 1d list
+
+List for each day the measured average.
 
 BUGS
 ----
