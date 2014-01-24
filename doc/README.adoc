@@ -59,6 +59,9 @@ Call gnuplot to plot the blood pressure.
  * *status*
 Print status based on last measurements.
 
+ * *add* <systolic> <diastolic> <bpm>
+Add a manual entry to the list. (dated now)
+
 * *help*
 This help message.
 

@@ -911,6 +911,32 @@ namespace BPM
                     } else if ( strncmp( argv[i], "help", 4 ) == 0 ) {
                         this->help();
                         return EXIT_FAILURE;
+                    } else if ( strncmp( argv[i], "add", 3) == 0) {
+                        if (argc > (i+3)) {
+                            unsigned int systolic = strtol(argv[i+1], NULL, 10);
+                            unsigned int diastolic = strtol(argv[i+2], NULL, 10);
+                            unsigned int bpm = strtol(argv[i+3], NULL, 10);
+                            i+=3;
+                            measurement mes;
+                            mes.set_systolic(systolic);
+                            mes.set_diastolic(diastolic);
+                            mes.set_bpm(bpm);
+                            mes.set_time(time(NULL));
+                            mes.print();
+                            char r[2];
+                            do {
+                                printf("Are you sure? ");
+                                fflush(stdout);
+                                fread(r, 1, 2, stdin);
+                                if(r[0] == 'y') { 
+                                    storage.add(mes);
+                                }
+                            }while(r[0] != 'y' && r[0] != 'n' );
+
+                        }else{ 
+                            fprintf(stderr, "Invalid number of arguments to the add command\n");
+                            return EXIT_FAILURE;
+                        }
                     } else {
                         fprintf( stderr, "Invalid command line option: '%s'\n", argv[i] );
                         fprintf( stderr, "Type: '%s help' on information on how to use this tool.\n",
