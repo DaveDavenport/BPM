@@ -716,19 +716,19 @@ namespace BPM
                 char buffer[1024] = {'\0',};
 
                 // Average Systolic.
-                snprintf( buffer, 1024, "avgsys(x)=c+mean_systolic*(x)\n" );
+                snprintf( buffer, 1024, "avgsys(x)=c+mean_systolic*(1/(x-x0))\n" );
                 write( fd[1], buffer, strlen( buffer ) );
                 snprintf( buffer, 1024,
-                          "fit avgsys(x) \"< bpm filter %s txt\" using 1:2 via c,mean_systolic\n",
+                          "fit avgsys(x) \"< bpm filter %s txt\" using 1:2 via x0,c,mean_systolic\n",
                           range );
                 write( fd[1], buffer, strlen( buffer ) );
 
 
                 // Average Diastolic.
-                snprintf( buffer, 1024, "avgdia(x)=y0+mean_diastolic*(x)\n" );
+                snprintf( buffer, 1024, "avgdia(x)=y0+mean_diastolic*(1/(x-z0))\n" );
                 write( fd[1], buffer, strlen( buffer ) );
                 snprintf( buffer, 1024,
-                          "fit avgdia(x) \"< bpm filter %s txt\" using 1:3 via y0,mean_diastolic\n",
+                          "fit avgdia(x) \"< bpm filter %s txt\" using 1:3 via z0,y0,mean_diastolic\n",
                           range );
                 write( fd[1], buffer, strlen( buffer ) );
 

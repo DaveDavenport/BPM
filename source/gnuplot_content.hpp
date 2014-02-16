@@ -1,18 +1,18 @@
-const char *gnuplot_file = "set term pngcairo dashed size 1200,400 \n"\
+const char *gnuplot_file = "set term pngcairo dashed size 1000,400 \n"\
 "set output 'bpm.png'\n"\
 "\n"\
 "set fit quiet\n"\
 "\n"\
 "set datafile separator " " \n"\
 "\n"\
+"set xtics rotate font \"arial,8\"\n"\
 "set xdata time\n"\
 "set timefmt \"%s\"\n"\
-"set format x \"%d/%m/%Y\"\n"\
-"set yrange [60:180]\n"\
+"set format x \"%d/%m/%y\"\n"\
+"set yrange [60:170]\n"\
 "set xlabel \"Date\"\n"\
-"set xtic 86400 \n"\
+"set xtic 3*86400 \n"\
 "set ylabel \"BP\"\n"\
-"set xtics rotate\n"\
 "\n"\
 "set grid\n"\
 "set style line 1 lt 1 lc rgb \"#000976\" lw 2\n"\
