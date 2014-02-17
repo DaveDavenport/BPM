@@ -902,7 +902,12 @@ namespace BPM
                                 // Increment parsed arguments.
                                 i++;
                                 this->set_filter_range_day( ( int )res );
+                            }else if ( *endptr == 'h' ) {
+                                // Increment parsed arguments.
+                                i++;
+                                this->set_filter_range( ( int )res*60 );
                             }
+
                         }
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
                         this->plot( ( ( i+1 ) < argc )?( argv[++i] ):"" );
