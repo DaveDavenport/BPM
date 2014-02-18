@@ -611,7 +611,7 @@ namespace BPM
         private:
             Storage storage;
             BM58    bm58;
-            bool filter = false;
+            bool filter = true;
             void import() {
                 if ( bm58.open_device() ) {
                     int num_records = bm58.get_num_measurements();
@@ -815,11 +815,10 @@ namespace BPM
                 return retv;
             }
 
-            void status() {
+            void status(int days = 7) {
                 // Get last measurement.
                 time_t now = time( nullptr );
 
-                int days = 7;
                 // Remove 5 days
                 now -= 60*60*24*days;
 
@@ -834,13 +833,19 @@ namespace BPM
                 WHO_class highest = OPTIMAL;
                 unsigned int dia = 0;
                 unsigned int sys = 0;
+                unsigned int max_dia = 0;
+                unsigned int max_sys = 0;
                 measurement mes;
 
+                if ( filter ) {
+                    list = this->filter_list( list );
+                }
                 for ( auto iter : list ) {
                     auto max = iter.get_classification();
 
                     if ( max < highest ) highest = max;
-
+                    if(iter.get_diastolic() > max_dia) max_dia = iter.get_diastolic();
+                    if(iter.get_systolic() > max_sys) max_sys = iter.get_systolic();
                     dia += iter.get_diastolic();
                     sys += iter.get_systolic();
                 }
@@ -849,6 +854,8 @@ namespace BPM
                 sys /= list.size();
                 mes.set_systolic( sys );
                 mes.set_diastolic( dia );
+                printf( "\nStatistics over the last %d day%c\n", days, (days == 1)?' ':'s');
+                printf( "Using %u samples\n", list.size());
                 printf( "\n" );
                 printf( "Highest WHO Classification: %s\n",
                         WHO_class_str[highest] );
@@ -856,6 +863,8 @@ namespace BPM
                         WHO_class_str[mes.get_classification()] );
                 printf( "Average Systolic:           %d\n", sys );
                 printf( "Average Diastolic:          %d\n", dia );
+                printf( "Maximum Systolic:           %d\n", max_sys );
+                printf( "Maximum Diastolic:          %d\n", max_dia );
 
             }
 
@@ -887,15 +896,18 @@ namespace BPM
                         this->filter = true;
 
                         if ( ( i+1 ) < argc ) {
+                            errno = 0;
                             char *endptr = nullptr;
                             long int res = strtol( argv[i+1], &endptr, 10 );
 
-                            if ( errno == ERANGE ) {
+                            if ( errno != 0 ) {
                                 continue;
                             }
-
-                            if ( *endptr == '\0' ) {
-                                // Increment parsed arguments.
+                            if(res == 0) { 
+                                filter = false;
+                                i++;
+                            }else if ( *endptr == '\0' ) {
+                                    // Increment parsed arguments.
                                 i++;
                                 this->set_filter_range( ( int )res );
                             } else if ( *endptr == 'd' ) {
@@ -912,7 +924,17 @@ namespace BPM
                     } else if ( strncmp( argv[i], "plot", 4 ) == 0 ) {
                         this->plot( ( ( i+1 ) < argc )?( argv[++i] ):"" );
                     } else if ( strncmp( argv[i], "status", 6 ) == 0 ) {
-                        this->status();
+                        int days = 7;
+                        if ( ( i+1 ) < argc ) {
+                            errno =0 ;
+                            char *endptr = nullptr;
+                            long int res = strtol( argv[i+1], &endptr, 10 );
+                            if(errno == 0) {
+                                days = res;
+                                i++;
+                            }
+                        }
+                        this->status(days);
                     } else if ( strncmp( argv[i], "help", 4 ) == 0 ) {
                         this->help();
                         return EXIT_FAILURE;
