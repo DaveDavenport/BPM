@@ -788,7 +788,8 @@ namespace BPM
 
                 for ( auto it : ls ) {
                     if ( filter_function( it, last,filter_range ) ) {
-                        if ( it.get_diastolic() < last.get_diastolic() ) {
+                        //if ( it.get_diastolic() < last.get_diastolic() )
+                        {
                             // Diastolic.
                             double dia = last.get_diastolic()*( elements/( double )( elements+1 ) );
                             dia+=it.get_diastolic()*( 1/( double )( elements+1 ) );
